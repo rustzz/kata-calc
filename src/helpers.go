@@ -1,79 +1,97 @@
 package main
 
 import (
-	"go/token"
-	"go/types"
+	"regexp"
 	"strconv"
-	"strings"
-	"unicode"
 )
 
-func romanToDecimal(romanNumber string) int {
-	var decimal int
-	var lastNumber int
-	var romanNumeral string = strings.ToUpper(romanNumber)
-
-	for x := len([]rune(romanNumeral)) - 1; x >= 0; x-- {
-		var convertToDecimal rune = []rune(romanNumeral)[x]
-
-		switch convertToDecimal {
-		case 'M':
-			decimal = processDecimal(1000, lastNumber, decimal)
-			lastNumber = 1000
-
-		case 'D':
-			decimal = processDecimal(500, lastNumber, decimal)
-			lastNumber = 500
-
-		case 'C':
-			decimal = processDecimal(100, lastNumber, decimal)
-			lastNumber = 100
-
-		case 'L':
-			decimal = processDecimal(50, lastNumber, decimal)
-			lastNumber = 50
-
-		case 'X':
-			decimal = processDecimal(10, lastNumber, decimal)
-			lastNumber = 10
-
-		case 'V':
-			decimal = processDecimal(5, lastNumber, decimal)
-			lastNumber = 5
-
-		case 'I':
-			decimal = processDecimal(1, lastNumber, decimal)
-			lastNumber = 1
+func romeToArabic(romeNumber string) string {
+	var romeNumberList [10]string = [10]string{"I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"}
+	var arabicNumberList [10]string = [10]string{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
+	var arabicNumber string
+	for i := 0; i < len(romeNumberList); i++ {
+		if romeNumber == romeNumberList[i] {
+			arabicNumber += arabicNumberList[i]
+			break
 		}
 	}
-	return decimal
+	return arabicNumber
 }
 
-func processDecimal(decimal int, lastNumber int, lastDecimal int) int {
-	if lastNumber > decimal {
-		return lastDecimal - decimal
-	}
-	return lastDecimal + decimal
-}
+func arabicToRome(arabicNumber int) string {
+	var listRomeNumbers [9]string = [9]string{"C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"}
+	var listArabicNumbers [9]int = [9]int{100, 90, 50, 40, 10, 9, 5, 4, 1}
+	var count int = 0
+	var remainder int
+	var romeNumber string
 
-func replaceRoman(exp string) string {
-	var collectRoman string
-	for _, symbol := range exp {
-		if unicode.IsLetter(symbol) {
-			collectRoman += string(symbol)
+	for count < len(listRomeNumbers) {
+		for arabicNumber >= listArabicNumbers[count] {
+			remainder = arabicNumber / listArabicNumbers[count]
+			arabicNumber %= listArabicNumbers[count]
+			for i := 0; i < remainder; i++ {
+				romeNumber += listRomeNumbers[count]
+			}
 		}
-		if len([]rune(collectRoman)) != 0 && !unicode.IsLetter(symbol) {
-			exp = strings.Replace(exp, collectRoman, strconv.Itoa(romanToDecimal(collectRoman)), -1)
-		}
+		count++
 	}
-	return exp
+	return romeNumber
 }
 
-func executeExpression(exp string) string {
-	fs := token.NewFileSet()
-	tv, err := types.Eval(fs, nil, token.NoPos, exp)
+func isArabic(operand string) bool {
+	matched, err := regexp.MatchString("\\d", operand)
 	if err != nil {
 		panic(err)
 	}
-	return tv.Value.String()
+	if matched {
+		return true
+	}
+	return false
+}
+
+func performAnAction(operator1 string, operations string, operator2 string) int {
+	switch operations {
+	case ("+"):
+		op1, err := strconv.Atoi(operator1)
+		if err != nil {
+			panic(err)
+		}
+		op2, err := strconv.Atoi(operator2)
+		if err != nil {
+			panic(err)
+		}
+		return op1 + op2
+	case ("-"):
+		op1, err := strconv.Atoi(operator1)
+		if err != nil {
+			panic(err)
+		}
+		op2, err := strconv.Atoi(operator2)
+		if err != nil {
+			panic(err)
+		}
+		return op1 - op2
+	case ("*"):
+		op1, err := strconv.Atoi(operator1)
+		if err != nil {
+			panic(err)
+		}
+		op2, err := strconv.Atoi(operator2)
+		if err != nil {
+			panic(err)
+		}
+		return op1 * op2
+	case ("/"):
+		op1, err := strconv.Atoi(operator1)
+		if err != nil {
+			panic(err)
+		}
+		op2, err := strconv.Atoi(operator2)
+		if err != nil {
+			panic(err)
+		}
+		return op1 / op2
+	default:
+		panic("Неверный знак операции")
+	}
 }
