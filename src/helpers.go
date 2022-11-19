@@ -1,8 +1,11 @@
 package main
 
 import (
+	"errors"
+	"os"
 	"regexp"
 	"strconv"
+	"strings"
 )
 
 func romeToArabic(romeNumber string) string {
@@ -41,7 +44,8 @@ func arabicToRome(arabicNumber int) string {
 func isArabic(operand string) bool {
 	matched, err := regexp.MatchString("\\d", operand)
 	if err != nil {
-		panic(err)
+		logger.Error(err)
+		os.Exit(1)
 	}
 	if matched {
 		return true
@@ -54,44 +58,75 @@ func performAnAction(operator1 string, operations string, operator2 string) int 
 	case ("+"):
 		op1, err := strconv.Atoi(operator1)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		op2, err := strconv.Atoi(operator2)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		return op1 + op2
 	case ("-"):
 		op1, err := strconv.Atoi(operator1)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		op2, err := strconv.Atoi(operator2)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		return op1 - op2
 	case ("*"):
 		op1, err := strconv.Atoi(operator1)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		op2, err := strconv.Atoi(operator2)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		return op1 * op2
 	case ("/"):
 		op1, err := strconv.Atoi(operator1)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		op2, err := strconv.Atoi(operator2)
 		if err != nil {
-			panic(err)
+			logger.Error(err)
+			os.Exit(1)
 		}
 		return op1 / op2
 	default:
 		panic("Неверный знак операции")
 	}
+}
+
+func calculate(splittedLine []string) (interface{}, error) {
+	for index := range splittedLine {
+		splittedLine[index] = strings.TrimSpace(splittedLine[index])
+	}
+	if len(splittedLine) != INPUT_DATA {
+		return 0, errors.New("введенные данные не удовлетворяет условию: 2 числа и знак арифметической операции в одну строку")
+	}
+	if isArabic(splittedLine[ORDINAL_FIRST_NUMBER]) && isArabic(splittedLine[ORDINAL_SECOND_NUMBER]) {
+		return performAnAction(splittedLine[ORDINAL_FIRST_NUMBER], splittedLine[OPERATION_SIGN], splittedLine[ORDINAL_SECOND_NUMBER]), nil
+	}
+	if !isArabic(splittedLine[ORDINAL_FIRST_NUMBER]) && !isArabic(splittedLine[ORDINAL_SECOND_NUMBER]) {
+		var resultArabic int = performAnAction(romeToArabic(splittedLine[ORDINAL_FIRST_NUMBER]), splittedLine[OPERATION_SIGN], romeToArabic(splittedLine[ORDINAL_SECOND_NUMBER]))
+		if resultArabic < 1 {
+			return 0, errors.New("в римской системе нет чисел меньше 1")
+		}
+		return arabicToRome(resultArabic), nil
+	}
+	if !(isArabic(splittedLine[ORDINAL_FIRST_NUMBER]) && isArabic(splittedLine[ORDINAL_SECOND_NUMBER])) {
+		return 0, errors.New("используются одновременно разные системы счисления")
+	}
+	return 0, errors.New("ни одно из условий проверки не подошло")
 }
